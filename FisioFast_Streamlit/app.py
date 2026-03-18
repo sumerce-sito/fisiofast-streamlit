@@ -1,3 +1,4 @@
+import hmac
 import json
 import os
 from datetime import datetime
@@ -62,13 +63,21 @@ def ensure_session_state() -> None:
         st.session_state.selected_record_index = None
     if "note_source_index" not in st.session_state:
         st.session_state.note_source_index = None
+    if "is_authenticated" not in st.session_state:
+        st.session_state.is_authenticated = False
+    if "authenticated_user" not in st.session_state:
+        st.session_state.authenticated_user = ""
+
+
+def get_secret_value(secret_name: str) -> str:
+    try:
+        return str(st.secrets[secret_name]).strip()
+    except Exception:
+        return ""
 
 
 def get_groq_api_key() -> tuple[str, str | None]:
-    try:
-        secret_value = str(st.secrets["GROQ_API_KEY"]).strip()
-    except Exception:
-        secret_value = ""
+    secret_value = get_secret_value("GROQ_API_KEY")
 
     if secret_value:
         return secret_value, "Streamlit secrets"
@@ -88,6 +97,38 @@ def clean_text(value: object, default: str = "No especificado") -> str:
 def join_items(values: list[str], default: str = "No especificado") -> str:
     cleaned = [str(item).strip() for item in values if str(item).strip()]
     return ", ".join(cleaned) if cleaned else default
+
+
+def get_auth_credentials() -> tuple[bool, str, str]:
+    username = get_secret_value("APP_USERNAME") or os.getenv("APP_USERNAME", "").strip()
+    password = get_secret_value("APP_PASSWORD") or os.getenv("APP_PASSWORD", "").strip()
+    return bool(username and password), username, password
+
+
+def require_login(auth_username: str, auth_password: str) -> None:
+    if st.session_state.is_authenticated:
+        return
+
+    st.title("Acceso restringido")
+    st.caption("Ingresa tus credenciales para usar FisioFast.")
+
+    with st.form("login_form", clear_on_submit=False):
+        input_username = st.text_input("Usuario")
+        input_password = st.text_input("Contrasena", type="password")
+        login_submitted = st.form_submit_button("Ingresar", type="primary", use_container_width=True)
+
+    if login_submitted:
+        username_ok = hmac.compare_digest(input_username.strip(), auth_username)
+        password_ok = hmac.compare_digest(input_password, auth_password)
+
+        if username_ok and password_ok:
+            st.session_state.is_authenticated = True
+            st.session_state.authenticated_user = auth_username
+            st.rerun()
+
+        st.error("Credenciales invalidas.")
+
+    st.stop()
 
 
 def build_record_label(payload: dict, index: int) -> str:
@@ -302,9 +343,27 @@ st.markdown(
 
 ensure_session_state()
 groq_api_key, api_key_source = get_groq_api_key()
+auth_enabled, auth_username, auth_password = get_auth_credentials()
+
+if auth_enabled:
+    require_login(auth_username=auth_username, auth_password=auth_password)
 
 with st.sidebar:
     st.title("Configuracion")
+
+    if auth_enabled:
+        st.success(f"Sesion activa: {st.session_state.authenticated_user}")
+        if st.button("Cerrar sesion", use_container_width=True):
+            st.session_state.is_authenticated = False
+            st.session_state.authenticated_user = ""
+            st.rerun()
+        st.divider()
+    else:
+        st.warning(
+            "Acceso sin bloqueo. Para activarlo, define APP_USERNAME y APP_PASSWORD "
+            "en los Secrets de Streamlit."
+        )
+        st.divider()
 
     generation_mode = st.radio(
         "Modo de generacion",

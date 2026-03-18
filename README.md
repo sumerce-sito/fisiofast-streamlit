@@ -62,6 +62,19 @@ La app deja visibles solo estos modelos verificados:
 - `llama-3.3-70b-versatile`
 - `llama-3.1-8b-instant`
 
+## Control de acceso
+
+La app soporta login simple con usuario y contrasena usando `Streamlit Secrets`.
+
+Si defines estos valores, la app pedira credenciales antes de dejar entrar:
+
+```toml
+APP_USERNAME = "tu_usuario"
+APP_PASSWORD = "tu_password_seguro"
+```
+
+Si no los defines, la app sigue funcionando sin bloqueo para no romper el despliegue.
+
 ## Despliegue en Streamlit Community Cloud
 
 1. Sube este repositorio a GitHub.
@@ -71,6 +84,8 @@ La app deja visibles solo estos modelos verificados:
 
 ```toml
 GROQ_API_KEY = "tu_api_key_real"
+APP_USERNAME = "tu_usuario"
+APP_PASSWORD = "tu_password_seguro"
 ```
 
 5. Despliega.
