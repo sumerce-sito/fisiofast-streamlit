@@ -15,14 +15,14 @@ Ese enfoque es el correcto para despliegue cloud: Streamlit maneja la UI y el pr
 - `FisioFast_Streamlit/app.py`: aplicación principal.
 - `FisioFast_Streamlit/requirements.txt`: dependencias Python.
 - `FisioFast_Streamlit/iniciar.bat`: arranque local en Windows.
-- `FisioFast_Streamlit/.streamlit/secrets.toml.example`: ejemplo de secretos.
+- `.streamlit/config.toml`: configuración compartida para local y nube.
+- `.streamlit/secrets.toml.example`: ejemplo de secretos locales.
 
 ## Ejecutar localmente
 
 ```powershell
-cd FisioFast_Streamlit
-pip install -r requirements.txt
-streamlit run app.py
+pip install -r FisioFast_Streamlit/requirements.txt
+streamlit run FisioFast_Streamlit/app.py
 ```
 
 ## Configuración del LLM
@@ -33,6 +33,8 @@ La app busca `GROQ_API_KEY` en este orden:
 2. Variable de entorno `GROQ_API_KEY`
 3. Entrada manual en la barra lateral
 
+Para desarrollo local, crea `.streamlit/secrets.toml` a partir de `.streamlit/secrets.toml.example`.
+
 ## Despliegue en nube
 
 ### Streamlit Community Cloud
@@ -40,6 +42,7 @@ La app busca `GROQ_API_KEY` en este orden:
 - Conecta este repositorio desde GitHub.
 - Usa como archivo principal `FisioFast_Streamlit/app.py`.
 - Configura el secreto `GROQ_API_KEY` en la sección `Secrets`.
+- La app instalará dependencias desde `FisioFast_Streamlit/requirements.txt`, porque ese archivo está junto al entrypoint.
 
 ### Otras plataformas
 

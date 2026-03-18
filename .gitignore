@@ -2,6 +2,8 @@
 /*
 !/.gitignore
 !/README.md
+!/.streamlit/
+!/.streamlit/**
 !/FisioFast_Streamlit/
 !/FisioFast_Streamlit/**
 
@@ -17,7 +19,6 @@ env/
 .env
 .env.*
 .streamlit/secrets.toml
-FisioFast_Streamlit/.streamlit/secrets.toml
 
 # Logs
 *.log
