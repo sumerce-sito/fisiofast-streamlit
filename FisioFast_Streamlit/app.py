@@ -170,28 +170,119 @@ st.set_page_config(
 st.markdown(
     """
 <style>
+    :root {
+        --page-bg-top: #08131f;
+        --page-bg-bottom: #0e2033;
+        --panel-bg: rgba(18, 32, 51, 0.96);
+        --panel-border: rgba(125, 211, 252, 0.22);
+        --text-main: #f8fafc;
+        --text-soft: #dbe7f3;
+        --text-muted: #b7c7d9;
+        --accent: #22c55e;
+        --accent-strong: #16a34a;
+    }
     .stApp {
-        background: linear-gradient(180deg, #08111f 0%, #0c1729 100%);
-        color: #f1f5f9;
+        background:
+            radial-gradient(circle at top right, rgba(34, 197, 94, 0.14), transparent 28%),
+            linear-gradient(180deg, var(--page-bg-top) 0%, var(--page-bg-bottom) 100%);
+        color: var(--text-main);
     }
     section[data-testid="stSidebar"] {
-        background: #0b1322;
+        background: linear-gradient(180deg, #0b1625 0%, #11233a 100%);
+        border-right: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    section[data-testid="stSidebar"] * {
+        color: var(--text-main);
+    }
+    .block-container {
+        padding-top: 2rem;
+        padding-bottom: 2.5rem;
+    }
+    h1, h2, h3, h4, h5, h6 {
+        color: var(--text-main);
+        letter-spacing: -0.02em;
+    }
+    p, label, .stCaption, .stMarkdown, .stRadio label, .stSelectbox label {
+        color: var(--text-soft);
+    }
+    [data-testid="stMarkdownContainer"] p {
+        color: var(--text-soft);
+    }
+    [data-testid="stMetricLabel"],
+    [data-testid="stCaptionContainer"] {
+        color: var(--text-muted);
+    }
+    [data-baseweb="input"] > div,
+    [data-baseweb="select"] > div,
+    [data-baseweb="textarea"] > div,
+    div[data-testid="stTextInputRootElement"] > div,
+    div[data-testid="stNumberInputContainer"] > div,
+    div[data-testid="stSelectbox"] > div,
+    textarea {
+        background: rgba(10, 20, 33, 0.92) !important;
+        border: 1px solid var(--panel-border) !important;
+        color: var(--text-main) !important;
+        border-radius: 12px !important;
+        box-shadow: none !important;
+    }
+    input, textarea {
+        color: var(--text-main) !important;
+        -webkit-text-fill-color: var(--text-main) !important;
+    }
+    textarea::placeholder,
+    input::placeholder {
+        color: #9eb3c9 !important;
+        opacity: 1 !important;
+    }
+    [data-baseweb="tag"] {
+        background: rgba(34, 197, 94, 0.18) !important;
+        border: 1px solid rgba(34, 197, 94, 0.35) !important;
+        color: var(--text-main) !important;
+    }
+    div[data-testid="stForm"] {
+        background: rgba(10, 19, 31, 0.72);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        border-radius: 22px;
+        padding: 1.2rem 1.2rem 0.4rem 1.2rem;
+        box-shadow: 0 18px 38px rgba(0, 0, 0, 0.22);
+    }
+    div[data-testid="stCodeBlock"] {
+        border: 1px solid var(--panel-border);
+        border-radius: 16px;
+        overflow: hidden;
     }
     .stButton > button[kind="primary"] {
-        background: linear-gradient(135deg, #38bdf8, #0ea5e9);
+        background: linear-gradient(135deg, var(--accent), var(--accent-strong));
         border: none;
         border-radius: 14px;
         font-weight: 700;
         color: white;
-        box-shadow: 0 8px 20px -4px rgba(56, 189, 248, 0.4);
+        box-shadow: 0 10px 24px -8px rgba(34, 197, 94, 0.55);
+    }
+    .stButton > button {
+        border-radius: 14px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .stButton > button:hover {
+        border-color: rgba(255, 255, 255, 0.14);
     }
     .nota-box {
-        background: #0d1a2b;
-        border: 1px solid rgba(56, 189, 248, 0.3);
-        border-radius: 14px;
-        padding: 1.2rem 1.5rem;
+        background: var(--panel-bg);
+        border: 1px solid rgba(148, 163, 184, 0.24);
+        border-radius: 18px;
+        padding: 1.25rem 1.5rem;
         line-height: 1.7;
         white-space: pre-wrap;
+        color: var(--text-main);
+        box-shadow: 0 16px 32px rgba(0, 0, 0, 0.18);
+    }
+    .stAlert {
+        border-radius: 14px;
+    }
+    [data-testid="stExpander"] {
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 16px;
+        background: rgba(10, 19, 31, 0.62);
     }
 </style>
 """,
