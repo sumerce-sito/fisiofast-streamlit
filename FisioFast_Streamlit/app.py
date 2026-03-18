@@ -58,6 +58,10 @@ def ensure_session_state() -> None:
         st.session_state.ultimo_payload = None
     if "nota_generada" not in st.session_state:
         st.session_state.nota_generada = None
+    if "selected_record_index" not in st.session_state:
+        st.session_state.selected_record_index = None
+    if "note_source_index" not in st.session_state:
+        st.session_state.note_source_index = None
 
 
 def get_groq_api_key() -> tuple[str, str | None]:
@@ -84,6 +88,13 @@ def clean_text(value: object, default: str = "No especificado") -> str:
 def join_items(values: list[str], default: str = "No especificado") -> str:
     cleaned = [str(item).strip() for item in values if str(item).strip()]
     return ", ".join(cleaned) if cleaned else default
+
+
+def build_record_label(payload: dict, index: int) -> str:
+    paciente = clean_text(payload.get("paciente"), default="Paciente sin nombre")
+    tipo = "Valoracion" if payload.get("tipo_registro") == "valoracion" else "Seguimiento"
+    fecha = clean_text(payload.get("_fecha"), default="Sin fecha")
+    return f"{index + 1}. {paciente} | {tipo} | {fecha}"
 
 
 def build_demo_note(payload: dict) -> str:
@@ -336,7 +347,7 @@ st.title("FisioFast")
 st.caption("Documentacion clinica con IA para fisioterapia")
 st.divider()
 
-with st.form("fisio_form", clear_on_submit=False):
+with st.form("fisio_form", clear_on_submit=True):
     st.subheader("Paciente")
     paciente = st.text_input("Nombre completo", placeholder="Ej. Juan Perez Garcia")
 
@@ -593,16 +604,48 @@ if submitted:
 
         st.session_state.registros.append(payload)
         st.session_state.ultimo_payload = payload
+        st.session_state.selected_record_index = len(st.session_state.registros) - 1
         st.session_state.nota_generada = None
-        st.success(f"Registro guardado para {paciente.strip()}.")
+        st.session_state.note_source_index = None
+        st.success(
+            f"Registro guardado para {paciente.strip()}. "
+            "El formulario se limpio y el dato quedo almacenado en la sesion."
+        )
 
-if st.session_state.ultimo_payload:
+if st.session_state.registros:
     st.divider()
-    st.subheader("JSON del ultimo registro")
+    st.subheader("Registros guardados en sesion")
+    st.caption(
+        "Puedes capturar varios registros durante el dia y generar la nota mas tarde, "
+        "cuando selecciones el registro que quieras redactar."
+    )
+
+    record_options = list(range(len(st.session_state.registros) - 1, -1, -1))
+    default_record_index = st.session_state.selected_record_index
+    if default_record_index not in record_options:
+        default_record_index = record_options[0]
+
+    previous_record_index = st.session_state.selected_record_index
+    selected_record_index = st.selectbox(
+        "Registro para revisar o convertir en nota",
+        options=record_options,
+        index=record_options.index(default_record_index),
+        format_func=lambda idx: build_record_label(st.session_state.registros[idx], idx),
+    )
+
+    if (
+        previous_record_index is not None
+        and selected_record_index != previous_record_index
+        and st.session_state.note_source_index != selected_record_index
+    ):
+        st.session_state.nota_generada = None
+
+    st.session_state.selected_record_index = selected_record_index
+    selected_payload = st.session_state.registros[selected_record_index]
 
     json_limpio = {
         key: value
-        for key, value in st.session_state.ultimo_payload.items()
+        for key, value in selected_payload.items()
         if key != "_fecha"
     }
     json_str = json.dumps(json_limpio, ensure_ascii=False, indent=2)
@@ -630,7 +673,7 @@ if st.session_state.ultimo_payload:
             else "Generar nota demo"
         )
 
-        if st.button(button_label, use_container_width=True, type="primary"):
+        if st.button(button_label, use_container_width=True, type="primary", key="generate_note"):
             try:
                 with st.spinner("Generando nota..."):
                     if generation_mode == "Groq API":
@@ -641,6 +684,7 @@ if st.session_state.ultimo_payload:
                         )
                     else:
                         st.session_state.nota_generada = build_demo_note(json_limpio)
+                    st.session_state.note_source_index = selected_record_index
             except ImportError:
                 st.error(
                     "La libreria 'groq' no esta instalada. "
@@ -649,7 +693,10 @@ if st.session_state.ultimo_payload:
             except Exception as exc:
                 st.error(f"Error al generar la nota: {exc}")
 
-    if st.session_state.nota_generada:
+    if (
+        st.session_state.nota_generada
+        and st.session_state.note_source_index == selected_record_index
+    ):
         if generation_mode == "Demo local":
             st.info("Esta salida fue generada en Demo local. Sirve para validar flujo, no reemplaza al LLM.")
 
@@ -662,7 +709,7 @@ if st.session_state.ultimo_payload:
         col1, col2 = st.columns(2)
         with col1:
             nombre_archivo = clean_text(
-                st.session_state.ultimo_payload.get("paciente", "paciente"),
+                selected_payload.get("paciente", "paciente"),
                 default="paciente",
             ).replace(" ", "_")
             st.download_button(
@@ -673,8 +720,9 @@ if st.session_state.ultimo_payload:
                 use_container_width=True,
             )
         with col2:
-            if st.button("Regenerar", use_container_width=True):
+            if st.button("Regenerar", use_container_width=True, key="regenerate_note"):
                 st.session_state.nota_generada = None
+                st.session_state.note_source_index = None
                 st.rerun()
 
 if st.session_state.registros:
@@ -697,4 +745,6 @@ if st.session_state.registros:
                 st.session_state.registros = []
                 st.session_state.ultimo_payload = None
                 st.session_state.nota_generada = None
+                st.session_state.selected_record_index = None
+                st.session_state.note_source_index = None
                 st.rerun()
