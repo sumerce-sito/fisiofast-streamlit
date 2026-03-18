@@ -1,0 +1,29 @@
+# Repo focused on the Streamlit app
+/*
+!/.gitignore
+!/README.md
+!/FisioFast_Streamlit/
+!/FisioFast_Streamlit/**
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+env/
+
+# Secrets / local config
+.env
+.env.*
+.streamlit/secrets.toml
+FisioFast_Streamlit/.streamlit/secrets.toml
+
+# Logs
+*.log
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
