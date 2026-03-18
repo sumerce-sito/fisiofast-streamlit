@@ -1,59 +1,95 @@
 # FisioFast Streamlit
 
-Aplicación Streamlit para captura de registros de fisioterapia y generación de notas clínicas con un LLM vía API.
+Aplicacion Streamlit para capturar registros de fisioterapia y generar notas clinicas con IA.
 
-## Arquitectura
+## Estado del proyecto
 
-- `Streamlit` corre en la nube como interfaz web.
-- El `LLM` no se ejecuta dentro de Streamlit.
-- La app consume un modelo remoto por API, actualmente `Groq`.
+Este repositorio ya esta preparado para:
 
-Ese enfoque es el correcto para despliegue cloud: Streamlit maneja la UI y el proveedor LLM maneja la inferencia.
+- Subirse a GitHub sin arrastrar archivos locales ni secretos.
+- Ejecutarse en Streamlit Community Cloud.
+- Probar el flujo completo sin API usando `Demo local`.
+- Generar notas reales con Groq usando `GROQ_API_KEY`.
 
 ## Estructura
 
-- `FisioFast_Streamlit/app.py`: aplicación principal.
-- `FisioFast_Streamlit/requirements.txt`: dependencias Python.
+- `FisioFast_Streamlit/app.py`: aplicacion principal.
+- `FisioFast_Streamlit/requirements.txt`: dependencias Python fijadas.
 - `FisioFast_Streamlit/iniciar.bat`: arranque local en Windows.
-- `.streamlit/config.toml`: configuración compartida para local y nube.
-- `.streamlit/secrets.toml.example`: ejemplo de secretos locales.
+- `.streamlit/config.toml`: configuracion compartida.
+- `.streamlit/secrets.toml.example`: ejemplo de secreto local.
 
-## Ejecutar localmente
+## Probar localmente
+
+### Opcion 1: flujo completo sin API
 
 ```powershell
-pip install -r FisioFast_Streamlit/requirements.txt
+python -m pip install -r FisioFast_Streamlit/requirements.txt
 streamlit run FisioFast_Streamlit/app.py
 ```
 
-## Configuración del LLM
+En la barra lateral selecciona `Demo local`.
 
-La app busca `GROQ_API_KEY` en este orden:
+Ese modo permite:
+
+- Llenar el formulario.
+- Guardar el registro.
+- Ver el JSON.
+- Generar una nota simulada.
+- Descargar la nota final.
+
+### Opcion 2: flujo real con Groq
+
+Puedes cargar la API key de tres maneras:
 
 1. `st.secrets["GROQ_API_KEY"]`
 2. Variable de entorno `GROQ_API_KEY`
 3. Entrada manual en la barra lateral
 
-Para desarrollo local, crea `.streamlit/secrets.toml` a partir de `.streamlit/secrets.toml.example`.
+Ejemplo por variable de entorno en PowerShell:
 
-## Despliegue en nube
-
-### Streamlit Community Cloud
-
-- Conecta este repositorio desde GitHub.
-- Usa como archivo principal `FisioFast_Streamlit/app.py`.
-- Configura el secreto `GROQ_API_KEY` en la sección `Secrets`.
-- La app instalará dependencias desde `FisioFast_Streamlit/requirements.txt`, porque ese archivo está junto al entrypoint.
-
-### Otras plataformas
-
-Usa como comando de arranque:
-
-```bash
-streamlit run FisioFast_Streamlit/app.py --server.address 0.0.0.0 --server.port $PORT
+```powershell
+$env:GROQ_API_KEY="tu_api_key_real"
+streamlit run FisioFast_Streamlit/app.py
 ```
 
-Y define `GROQ_API_KEY` como variable de entorno.
+O crea `.streamlit/secrets.toml` a partir de `.streamlit/secrets.toml.example`.
+
+## Modelos Groq habilitados
+
+La app deja visibles solo estos modelos verificados:
+
+- `llama-3.3-70b-versatile`
+- `llama-3.1-8b-instant`
+
+## Despliegue en Streamlit Community Cloud
+
+1. Sube este repositorio a GitHub.
+2. En Streamlit Community Cloud, crea una nueva app conectando ese repo.
+3. Usa como archivo principal `FisioFast_Streamlit/app.py`.
+4. En `Settings > Secrets`, agrega:
+
+```toml
+GROQ_API_KEY = "tu_api_key_real"
+```
+
+5. Despliega.
+
+Como `requirements.txt` vive junto al entrypoint, Streamlit Community Cloud tomara ese archivo de dependencias para la instalacion.
+
+## Seguridad
+
+- `.streamlit/secrets.toml` no se versiona.
+- No pongas claves reales dentro del codigo ni del repo.
+- Usa `.streamlit/secrets.toml.example` solo como plantilla.
 
 ## GitHub
 
-Este repositorio está configurado para versionar solo la versión Streamlit del proyecto.
+Si el repositorio local aun no tiene remoto configurado:
+
+```powershell
+git remote add origin https://github.com/TU_USUARIO/TU_REPO.git
+git push -u origin main
+```
+
+Si prefieres interfaz grafica, tambien puedes crear el repo vacio en GitHub y conectar el remoto desde tu cliente Git.
