@@ -106,12 +106,20 @@ if "nota_generada" not in st.session_state:
     st.session_state.nota_generada = None
 
 # ─── Obtener API Key ─────────────────────────────────────────────────────────
-# Primero busca en secrets de Streamlit Cloud, luego en la barra lateral
+# Primero busca en Streamlit secrets, luego en variables de entorno, luego en la barra lateral
 groq_api_key = ""
+api_key_source = None
 try:
     groq_api_key = st.secrets["GROQ_API_KEY"]
+    if groq_api_key:
+        api_key_source = "Streamlit secrets"
 except Exception:
     pass
+
+if not groq_api_key:
+    groq_api_key = os.getenv("GROQ_API_KEY", "").strip()
+    if groq_api_key:
+        api_key_source = "variable de entorno"
 
 # ─── Sidebar ─────────────────────────────────────────────────────────────────
 with st.sidebar:
@@ -126,7 +134,7 @@ with st.sidebar:
         )
         st.caption("La clave no se guarda en ningún lado.")
     else:
-        st.success("✅ API Key configurada")
+        st.success(f"✅ API Key configurada desde {api_key_source}")
 
     modelo = st.selectbox(
         "Modelo",
